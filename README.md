@@ -1,1 +1,2 @@
-
+START application:
+  node app
