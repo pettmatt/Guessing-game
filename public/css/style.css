@@ -1,0 +1,78 @@
+#board, #chat, #leaderboard, #players, #textfields {
+  display: none;
+}
+
+body, html {
+  margin: 0;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+body {
+  display: grid;
+  grid-template-columns: 25% auto 25%;
+}
+
+button {
+  border-radius: 5px;
+  border: none;
+  padding: 10px;
+  font-size: 15px;
+  background-color: rgb(221, 221, 221);
+}
+
+button:hover {
+  cursor: pointer;
+}
+
+.sendButton {
+  padding: 5px;
+  font-size: 12px;
+  border-radius: 2px;
+}
+
+input {
+  border-radius: 2px;
+  padding: 3px;
+  border: 1px solid #000;
+}
+
+#guessResponse p, #textfield p {
+  font-size: 12px;
+  margin: 2px;
+}
+
+#board, #chat, #leaderboard {
+  margin: 10px 0px;
+}
+
+#players p {
+  margin: 0px;
+  font-size: 10px;
+}
+
+.label {
+  font-size: 14px;
+}
+
+#textfields {
+  grid-template-columns: 40% 60%;
+  column-gap: 5px;
+}
+
+/* When element is too big make it scrollable */
+.textbox {
+  height: 300px;
+  overflow: auto;
+}
+
+/* firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+/* chrome / safari */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

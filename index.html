@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="./css/style.css">
+  <title>Document</title>
+</head>
+<body>
+  <div>
+    <div id="players">
+      <p><b>Players</b></p>
+    </div>
+  </div>
+  <div>
+    <h1>Socket.io Guessing game</h1>
+    <h3>Guess numbers between 0 and 1000</h3>
+
+    <div id="content">
+      <div>
+        <p>Welcome <span id="playerName"></span></p>
+      </div>
+      <p><span id="ready">0</span> of <span id="outOf">2</span> are ready</p>
+      <button id="readyButton" onclick="ready()">Start the match</button>
+    </div>
+
+    <div id="board">
+      <p id="name"></p>
+      <p id="round">Round 1</p>
+      <p id="timer"></p>
+      <p id="winner"></p>
+      <div class="label">Guess</div>
+      <input id="numberInput" type="number" autocomplete="off">
+      <button class="sendButton" id="sendNumber" onclick="sendNumber()">Send</button>
+    </div>
+    
+    <div id="chat">
+      <div class="label">Chat</div>
+      <input id="chatMessage" type="text" autocomplete="off">
+      <button class="sendButton" onclick="sendMessage()">Send</button>
+    </div>
+
+    <div id="textfields">
+      <div class="textboxContainer">
+        Guesses
+        <div id="guessResponse" class="textbox"></div>
+      </div>
+      <div class="textboxContainer">
+        Chat
+        <div id="textfield" class="textbox"></div>
+      </div>
+    </div>
+
+    <div id="leaderboard">
+      <h3>Leaderboard</h3>
+      <div id="leaderboardStats">
+        <!-- Winners' table -->
+      </div>
+    </div>
+  </div>
+  <div></div>
+</body>
+<script src="http://localhost:3000/socket.io/socket.io.js"></script>
+<script src="javascript/functions.js"></script>
+<script>
+  let players;
+  const socket = io();
+
+  socket.on('responseToClient', (data) => {
+    document.getElementById('guessResponse').innerHTML += data.message;
+  });
+
+  socket.on('welcome', user => {
+    //console.log(user);
+    document.getElementById('playerName').innerHTML = user.name;
+    document.getElementById('name').innerHTML = 'Username: ' + user.name;
+  });
+
+  socket.on('win', (data) => {
+    ToggleButtonDisabled(document.getElementById('sendNumber'), true); // Prevent players from submiting
+    document.getElementById('winner').innerHTML = data.message;
+    document.getElementById('leaderboard').style.display = 'block';
+    // Jollei käyttäjällä ole olemassa olevia tietoja leaderboardilla -> luo ne
+    if(!document.getElementById(data.username)) {
+      document.getElementById('leaderboardStats').innerHTML += 
+      `<p id="${data.username}"> ${data.leaderboard}<p>`;
+    }
+
+    // Muussa tapauksessa lisää vanhojen tilastojen päälle uudet
+    else {
+      document.getElementById(data.username).innerHTML = data.leaderboard;
+    }
+  });
+
+  socket.on('countdown', (data) => {
+    if(data.counter > 0) {
+      document.getElementById('timer').innerHTML = data.message;
+    }
+    else {
+      document.getElementById('guessResponse').innerHTML = '';
+      document.getElementById('winner').innerHTML = '';
+      document.getElementById('timer').innerHTML = '';
+      ToggleButtonDisabled(document.getElementById('sendNumber'), false);
+      // Round gets updated when the new round value gets emited to client
+      socket.on('newround', (data) => {
+        document.getElementById('round').innerHTML = 'Round ' + data.round;
+      })
+    }
+  });
+
+  // Lähetä numero (käyttäjän arvaus)
+  function sendNumber() {
+    // otetaan arvo talteen, joka emitoidaan 'guess':n avulla.
+    const number = document.getElementById('numberInput').value;
+    socket.emit('guess', {message: number});
+  }
+
+  // Näytä oliko arvaus oikein.
+  socket.on('guess', (guess) => {
+    document.getElementById('guessResponse').innerHTML = guess;
+  });
+
+  function ready() {
+    readyBtn = document.getElementById('readyButton');
+    ToggleButtonDisabled(readyBtn, true);
+    socket.emit('ready', {ready: true});
+  }
+
+  socket.on('ready', (res) => {
+    document.getElementById('ready').innerHTML = res.ready;
+
+    // When both players are ready
+    if(res.ready === 2) {
+      players = res.players;
+      console.log(players);
+
+      // Make sure the HTML is empty so there is no dublicates
+      document.getElementById('players').innerHTML = '<p><b>Players<p><b>';
+
+      // Display players
+      players.forEach(player => {
+        document.getElementById('players').innerHTML += '<p>' + player.name + '</p>';
+      });
+
+      document.getElementById('textfields').style.display = 'grid';
+      document.getElementById('board').style.display = 'block';
+      document.getElementById('chat').style.display = 'block';
+      document.getElementById('players').style.display = 'block';
+      document.getElementById('content').style.display = 'none';
+    }
+  });
+
+  // Send message
+  function sendMessage() {
+    // otetaan teksti-inputin sisältö talteen
+    const content = document.getElementById('chatMessage').value;
+    document.getElementById('chatMessage').value = '';
+    // emitoidaan 'chatMessage':lla jolla data lähtee avain-arvo parina
+    socket.emit('chatMessage', content);
+  }
+
+  // Broadcastätty viesti ja mitä clientin ruudulla pitää muuttua
+  socket.on('chatMessage', (msg) => {
+    const date = new Date();
+    let minutes = date.getMinutes();
+    let hours = date.getHours();
+    
+    if(minutes < 10) {
+      let temp = minutes;
+      minutes = '0' + temp.toString();
+    }
+    // Lisää viesti lisäämällä uusi <li> elementti, joka sisältää viestin
+    document.getElementById('textfield').innerHTML += 
+      '<p><span class="time">' + hours + ':' + minutes + ' </span><span class="username">' + msg.name + ': </span>' + msg.message + '</p>';
+  });
+
+  // repetitive functions
+  function ToggleInputAndButton(input, button, boolean = true || false) {
+    button.disabled = boolean;
+    input.disabled = boolean;
+  }
+
+  function ToggleButtonDisabled(button, boolean = true || false) {
+    button.disabled = boolean;
+  }
+</script>
+</html>
