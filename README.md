@@ -8,7 +8,7 @@ Navigate to project folder and execute `npm install`
  
 After installing necessary packages the application can be launched using `node app` command.
 
-[Link to the project](http://localhost:3000/)
+[Link to the project: Local host](http://localhost:3000/)
 
 *Certain actions are logged to console which may help to understand how the application works.*
 
