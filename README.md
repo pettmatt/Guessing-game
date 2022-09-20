@@ -12,7 +12,7 @@ After installing necessary packages the application can be launched using `node 
 
 *Certain actions are logged to console which may help to understand how the application works.*
 
-For testing the application successfully you need **two** instances running at the same time. Simply put open **two** tabs.
+For testing the application successfully you need **two** instances running at the same time. Simply put, open **two** tabs.
 
 ![Starting screen](./public/images/socket-io-guessing-01.png)
 
